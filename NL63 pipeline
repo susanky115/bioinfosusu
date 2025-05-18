@@ -1,0 +1,28 @@
+#!/usr/bin/env/ bash
+
+echo “RUNNING AWESOME PIPELINE WRITTEN BY SUSAN YEAHHHHHHH”
+echo “”
+echo “”
+
+SAMPLE=$1
+REFERENCE=$2
+
+echo $SAMPLE
+echo $REFERENCE
+
+cd $SAMPLE
+cat *.fastq.gz > $SAMPLE.fastq.gz
+
+mkdir RawDATA_$SAMPLE
+
+mv FAW*.fastq.gz RawDATA_$SAMPLE
+
+minimap2 -t 6 -a -x map-ont ../$REFERENCE $SAMPLE.fastq.gz > $SAMPLE.sam
+
+samtools sort -O bam -o $SAMPLE.bam $SAMPLE.sam
+
+samtools index $SAMPLE.bam
+
+samtools mpileup -aa -A -d 0 -Q 0 $SAMPLE.bam | ivar consensus -p $SAMPLE -q 20 -t 0.9 
+
+samtools depth -aa $SAMPLE.bam > $SAMPLE.txt
